@@ -32,14 +32,9 @@ void saveMsg(char *mgs, char *filePath) {
 
 int main(int argc, char * argv[])
 {
-	//std::cout << "You have entered " << argc
-		//<< " arguments:" << "\n";
-
-	//for (int i = 0; i < argc; ++i)
-	//std::cout << argv[i] << "\n";
 
 	char port = *(argv[0]);
-	//std::cout << "Hello World!\n"; 
+
 	WSADATA wsaData;
 	//Khoi tao WinSock 2.2
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -48,12 +43,8 @@ int main(int argc, char * argv[])
 	SOCKET ListeningSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	SOCKADDR_IN ServerAddr;
-	//SOCKADDR_IN ClientAddr;
-	//int ClientAddrLen;
-	//int Port = 9000;
 
 	//Khoi tao cau truc SOCKADDR_IN cua server
-	//doi ket noi o cong 8888
 	ServerAddr.sin_family = AF_INET;
 	ServerAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	ServerAddr.sin_port = htons(port);
@@ -63,15 +54,13 @@ int main(int argc, char * argv[])
 	//Chuyen sang trang thai doi ket noi
 	listen(ListeningSocket, 5);
 	//Chap nhan ket noi moi
-	//ClientAddrLen = sizeof(ClientAddr);
-	//NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 	SOCKET NewConnection = accept(ListeningSocket, NULL, NULL);
 	//Sau khi chap nhan ket noi moi, server co the tiep tuc chap nhan
 	//them cac ket noi khac, hoac gui nhan du lieu voi cac client
 	//thong qua cac socket duoc accept voi client
 	char buf[1024];
 	int ret;
-	//char filename[] = "Informacije.txt";
+
 	char * filename = argv[2];
 	//std::cout << argv[2];
 	//send(NewConnection, hello(argv[2]), strlen(hello(argv[2])), 0);
@@ -86,16 +75,12 @@ int main(int argc, char * argv[])
 
 	while (true)
 	{
-
-		//printf("Hello");
 		ret = recv(NewConnection, buf, sizeof(buf), 0);
 		if (ret <= 0)
-			//printf("Failed");
 			break;
 
 		buf[ret] = 0;
-		//if (ret > 0)
-			//printf("%i\n", ret);
+
 		file << buf << "\r\n";
 		//saveMsg(buf, argv[3]);
 		printf("Received: %s\n", buf);

@@ -15,12 +15,7 @@ struct sysInfo {
 
 int main(int argc, char * argv[])
 {
-	//std::cout << "You have entered " << argc
-		//<< " arguments:" << "\n";
 
-	//for (int i = 0; i < argc; ++i)
-	//std::cout << argv[i] << "\n";
-	//char * ADDR = argv[1];
 	char port = *(argv[1]);
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -29,7 +24,7 @@ int main(int argc, char * argv[])
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(9000);
-	//system("PAUSE");
+
 	bind(listener, (SOCKADDR *)&addr, sizeof(addr));
 	listen(listener, 5);
 
@@ -46,7 +41,7 @@ int main(int argc, char * argv[])
 	printf("%s\n", si.name);
 	printf("%i\n", si.n);
 	int d;
-	//char buf2[1024];
+	
 	while (true)
 	{
 		ret = recv(client, buf, sizeof(buf), 0);

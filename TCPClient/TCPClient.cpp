@@ -23,12 +23,6 @@ char *hello(char *filePaths) {
 
 int main(int argc, char * argv[])
 {
-	//cout << "You have entered " << argc
-	//	<< " arguments:" << "\n";
-
-	//for (int i = 0; i < argc; ++i)
-	//	cout << argv[i] << "\n";
-    //std::cout << "Hello World!\n"; 
 	WSADATA wsaData;
 	
 	//Khoi tao Winsock 2.2
@@ -36,7 +30,6 @@ int main(int argc, char * argv[])
 	//Tao socket client
 	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	//Khoi tao cau truc SOCKADDR_IN
-	//co dia chi 202.191.56.69, cong 8888
 	SOCKADDR_IN addr;
 	int Port = *(argv[0]);
 	addr.sin_family = AF_INET;
@@ -59,8 +52,7 @@ int main(int argc, char * argv[])
 		gets_s(buf, sizeof(buf));
 		int t = send(s, buf, strlen(buf), 0);
 		file << buf<<"\r\n";
-		//file << endl;
-		
+
 		if (strncmp(buf, "exit", 4) == 0)
 			break;
 		

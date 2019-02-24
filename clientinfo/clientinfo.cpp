@@ -57,10 +57,7 @@ int main(int argc, char * argv[])
 	//char * b = (char*)lpBuffer;
 	//std::cout << lpBuffer;
 	for (int i = 0; i < sizeof(lpBuffer); i++) {
-		//if ((char *) lpBuffer[i] >= "a" && (char *)  lpBuffer[i] <= "Z")
-		//{
 		printf("%c", lpBuffer[i]);
-		//}
 	}
 
 	printf("\n");
@@ -71,7 +68,7 @@ int main(int argc, char * argv[])
 
 	char * host = argv[1];
 	char * port = argv[2];
-	//std::cout << host<<"  "<<port;
+
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 
@@ -80,10 +77,6 @@ int main(int argc, char * argv[])
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = inet_addr(host);
 	addr.sin_port = htons(9000);
-	
-	//system("PAUSE");
-
-
 
 	int ret = connect(client, (SOCKADDR *)&addr, sizeof(addr));
 	struct sysInfo si;
@@ -98,8 +91,6 @@ int main(int argc, char * argv[])
 		printf("Nhap du lieu: ");
 		gets_s(buf, sizeof(buf));
 		int t = send(client, buf, strlen(buf), 0);
-		//file << buf << "\r\n";
-		//file << endl;
 
 		if (strncmp(buf, "exit", 4) == 0)
 			break;
