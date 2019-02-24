@@ -1,5 +1,4 @@
 # BaiTapLTM1
-Welcome to the BaiTapLTM1 wiki!
 
 1. Viết chương trình TCPClient, kết nối đến một máy chủ xác định bởi tên miền hoặc địa chỉ IP. Sau đó nhận dữ liệu từ bàn phím và gửi đến server. Tham số được truyền vào từ dòng lệnh có dạng TCPClient.exe 
 
