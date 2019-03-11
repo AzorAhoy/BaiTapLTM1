@@ -7,19 +7,13 @@
 #include <iostream>
 #include "winsock2.h"
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-
-struct sysInfo {
-	char name[32];
-	int n;
-};
-
-int main(int argc, char * argv[])
+int main()
 {
-
-	char port = *(argv[1]);
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
+
 	SOCKET listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
 	SOCKADDR_IN addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -31,34 +25,45 @@ int main(int argc, char * argv[])
 	SOCKET client = accept(listener, NULL, NULL);
 
 	char buf[256];
+	int offset = 0;
 	int ret = recv(client, buf, sizeof(buf), 0);
 
-	buf[ret] = 0;
-	printf("Received: %s\n", buf);
+	if (ret <= 0)
+		return 1;
 
-	struct sysInfo si;
-	memcpy(&si, buf, sizeof(si));
-	printf("%s\n", si.name);
-	printf("%i\n", si.n);
-	int d;
-	
-	while (true)
+	// Ten cua may tinh
+	printf("Computer Name: %s\n", buf);
+	offset += strlen(buf) + 1;
+
+	// Danh sach o dia
+	int numDrives;
+	memcpy(&numDrives, buf + offset, sizeof(numDrives));
+	printf("Num drives: %d\n", numDrives);
+
+	offset += sizeof(numDrives);
+
+	for (int i = 0; i < numDrives; i++)
 	{
-		ret = recv(client, buf, sizeof(buf), 0);
-		if (ret <= 0)
-		{
-			break;
-		}
-		buf[ret] = 0;
-		printf("Received: %s\n", buf);
+		char driveLetter;
+		double size;
+
+		memcpy(&driveLetter, buf + offset, sizeof(driveLetter));
+		printf("Drive: %c\n", driveLetter);
+		offset += sizeof(driveLetter);
+
+		memcpy(&size, buf + offset, sizeof(size));
+		printf("Size: %f\n", size);
+		offset += sizeof(size);
 	}
+
 	closesocket(client);
 	closesocket(listener);
-	system("PAUSE");
 	WSACleanup();
-	return 0;
-}	
 
+	system("PAUSE");
+
+	return 0;
+}
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu
 

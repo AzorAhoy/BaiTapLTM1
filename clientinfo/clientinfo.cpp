@@ -14,92 +14,65 @@ danh sách các ổ đĩa có trong máy, kích thước các ổ đĩa.
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 
-struct sysInfo {
-	char name[32];
-	int n;
-};
-
-int main(int argc, char * argv[])
+int main()
 {
-
-	TCHAR buffer[256] = TEXT("");
-	TCHAR szDescription[8][32] = { TEXT("NetBIOS"),
-		TEXT("DNS hostname"),
-		TEXT("DNS domain"),
-		TEXT("DNS fully-qualified"),
-		TEXT("Physical NetBIOS"),
-		TEXT("Physical DNS hostname"),
-		TEXT("Physical DNS domain"),
-		TEXT("Physical DNS fully-qualified") };
-	int cnf = 0;
-	DWORD dwSize = sizeof(buffer);
-
-	for (cnf = 0; cnf < ComputerNameMax; cnf++)
-	{
-		if (!GetComputerNameEx((COMPUTER_NAME_FORMAT)cnf, buffer, &dwSize))
-		{
-			_tprintf(TEXT("GetComputerNameEx failed (%d)\n"), GetLastError());
-			//return;
-		}
-		else _tprintf(TEXT("%s: %s\n"), szDescription[cnf], buffer);
-
-		dwSize = _countof(buffer);
-		ZeroMemory(buffer, dwSize);
-	}
-	printf_s("%c\n", (char *)buffer);
-	
-	DWORD mydrives = 100;// buffer length
-	wchar_t lpBuffer[100];// buffer for drive string storage
-	//char lpBuffer[100];
-	DWORD test = GetLogicalDriveStrings(mydrives, lpBuffer);
-
-	printf("The logical drives of this machine are:\n\n");
-	//char * b = (char*)lpBuffer;
-	//std::cout << lpBuffer;
-	for (int i = 0; i < sizeof(lpBuffer); i++) {
-		printf("%c", lpBuffer[i]);
-	}
-
-	printf("\n");
-	SYSTEM_INFO sysinfo;
-	GetSystemInfo(&sysinfo);
-	printf("danh sach o dia trong may: %u\n", sysinfo.dwNumberOfProcessors);
-	printf("Kich thuoc cac o dia: %u\n", sysinfo.dwPageSize);
-
-	char * host = argv[1];
-	char * port = argv[2];
-
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 
 	SOCKET client = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
 	SOCKADDR_IN addr;
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(host);
+	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	addr.sin_port = htons(9000);
 
-	int ret = connect(client, (SOCKADDR *)&addr, sizeof(addr));
-	struct sysInfo si;
-	strcpy(si.name, "HELLO WORLD\n-----------\n");
-	si.n = 26;
+	system("PAUSE");
 
-	send(client, (char *)&si, sizeof(si), 0);
-	int n;
-	char buf[1024];
-	while (true)
+	connect(client, (SOCKADDR *)&addr, sizeof(addr));
+
+	char buf[256];
+	int offset = 0;
+
+	char computerName[256];
+	DWORD nSize;
+	GetComputerNameA(computerName, &nSize);
+	memcpy(buf, computerName, strlen(computerName) + 1);
+	offset += strlen(computerName) + 1;
+
+	char driveString[256];
+	DWORD len = GetLogicalDriveStringsA(sizeof(driveString), driveString);
+	int numDriver = len / 4;
+
+	memcpy(buf + offset, &numDriver, sizeof(numDriver));
+	offset += sizeof(numDriver);
+
+	DWORD sectorsPerCluster;
+	DWORD bytesPerSector;
+	DWORD numberOfFreeClusters;
+	DWORD totalNumberOfClusters;
+	double size;
+
+	for (int i = 0; i < numDriver; i++)
 	{
-		printf("Nhap du lieu: ");
-		gets_s(buf, sizeof(buf));
-		int t = send(client, buf, strlen(buf), 0);
+		GetDiskFreeSpaceA(driveString + i * 4, &sectorsPerCluster, &bytesPerSector,
+			&numberOfFreeClusters, &totalNumberOfClusters);
+		size = (double)sectorsPerCluster * (double)bytesPerSector *
+			(double)totalNumberOfClusters / (1 << 30);
 
-		if (strncmp(buf, "exit", 4) == 0)
-			break;
+		memcpy(buf + offset, driveString + i * 4, 1);
+		offset += 1;
+
+		memcpy(buf + offset, &size, sizeof(size));
+		offset += sizeof(size);
 	}
+
+	send(client, buf, offset, 0);
+
 	closesocket(client);
 	WSACleanup();
+
 	return 0;
 }
-
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu
 

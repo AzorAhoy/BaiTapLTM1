@@ -11,86 +11,53 @@
 #include <fstream>
 using namespace std;
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-using namespace std;
 
-char *hello(char *filePaths) {
-	FILE *f;
-	f = fopen(filePaths, "r");
-	char *helloString = new char[50];
-	fgets(helloString, 255, (FILE*)f);
-	fclose(f);
-	return helloString;
-}
-
-void saveMsg(char *mgs, char *filePath) {
-	FILE *f;
-	f = fopen(filePath, "w");
-	fputs(mgs, f);
-	fclose(f);
-}
-
-
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
+	WSADATA wsa;
+	WSAStartup(MAKEWORD(2, 2), &wsa);
 
-	char port = *(argv[0]);
+	SOCKET listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	WSADATA wsaData;
-	//Khoi tao WinSock 2.2
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
+	SOCKADDR_IN addr;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(atoi(argv[1]));
 
-	//Tao socket nghe ket noi tu Client
-	SOCKET ListeningSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	bind(listener, (SOCKADDR *)&addr, sizeof(addr));
+	listen(listener, 5);
 
-	SOCKADDR_IN ServerAddr;
+	SOCKET client = accept(listener, NULL, NULL);
 
-	//Khoi tao cau truc SOCKADDR_IN cua server
-	ServerAddr.sin_family = AF_INET;
-	ServerAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	ServerAddr.sin_port = htons(port);
+	// Doc cau chao tu file
+	char buf[256];
+	FILE *f = fopen(argv[2], "r");
+	fgets(buf, sizeof(buf), f);
+	fclose(f);
+
+	// Gui cho client
+	send(client, buf, strlen(buf), 0);
 	
-	//Bind socket cua server
-	bind(ListeningSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr));
-	//Chuyen sang trang thai doi ket noi
-	listen(ListeningSocket, 5);
-	//Chap nhan ket noi moi
-	SOCKET NewConnection = accept(ListeningSocket, NULL, NULL);
-	//Sau khi chap nhan ket noi moi, server co the tiep tuc chap nhan
-	//them cac ket noi khac, hoac gui nhan du lieu voi cac client
-	//thong qua cac socket duoc accept voi client
-	char buf[1024];
-	int ret;
-
-	char * filename = argv[2];
-	//std::cout << argv[2];
-	//send(NewConnection, hello(argv[2]), strlen(hello(argv[2])), 0);
-	std::ifstream f(filename);
-
-	if (f.is_open())
-		std::cout << f.rdbuf();
-
-	fstream file;
-	char* filename2 = argv[3];
-	file.open(filename2, ios::out | ios::binary);
-
+	f = fopen(argv[3], "w");
 	while (true)
 	{
-		ret = recv(NewConnection, buf, sizeof(buf), 0);
+		// Nhan du lieu tu client
+		int ret = recv(client, buf, sizeof(buf), 0);
 		if (ret <= 0)
 			break;
-
+		printf("Received: %s", buf);
+		// Them ky tu ket thuc xau
 		buf[ret] = 0;
 
-		file << buf << "\r\n";
-		//saveMsg(buf, argv[3]);
-		printf("Received: %s\n", buf);
+		// Luu vao file
+		fprintf(f, "%s\n", buf);
 	}
-	file.close();
-	//Dong socket
-	closesocket(NewConnection);
-	closesocket(ListeningSocket);
-	//Giai phong WinSock
+	fclose(f);
+
+	closesocket(client);
+	closesocket(listener);
 	WSACleanup();
+
 	return 0;
 }
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

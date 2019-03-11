@@ -10,56 +10,50 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 using namespace std;
-
-char *hello(char *filePaths) {
-	FILE *f;
-	f = fopen(filePaths, "r");
-	char *helloString = new char[50];
-	fgets(helloString, 255, (FILE*)f);
-	fclose(f);
-	return helloString;
-}
-
-
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
-	WSADATA wsaData;
-	
-	//Khoi tao Winsock 2.2
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
-	//Tao socket client
-	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	//Khoi tao cau truc SOCKADDR_IN
+	/*printf("So cac tham so: %d\n", argc);
+	for (int i = 0; i < argc; i++)
+		printf("Tham so %d: %s\n", i, argv[i]);*/
+
+		// Kiem tra tinh dung dan cua tham so
+
+	WSADATA wsa;
+	WSAStartup(MAKEWORD(2, 2), &wsa);
+
+	SOCKET client = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
 	SOCKADDR_IN addr;
-	int Port = *(argv[0]);
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	addr.sin_port = htons(Port);
-	//addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	
+	addr.sin_addr.s_addr = inet_addr(argv[1]);
+	addr.sin_port = htons(atoi(argv[2]));
 
-	system("PAUSE");
+	connect(client, (SOCKADDR *)&addr, sizeof(addr));
 
-	int ret = connect(s, (SOCKADDR *) &addr, sizeof(addr));
+	char buf[256];
 
-	char buf[1024];
-	fstream file;
-	file.open("client.txt", ios::out | ios::binary);
+	// Nhan cau chao tu server
+	int ret = recv(client, buf, sizeof(buf), 0);
+	if (ret <= 0)
+		return 1;
+
+	buf[ret] = 0;
+	printf(buf);
+
 	while (true)
 	{
-
-		printf("Nhap du lieu: ");
+		printf("Nhap chuoi ky tu: ");
 		gets_s(buf, sizeof(buf));
-		int t = send(s, buf, strlen(buf), 0);
-		file << buf<<"\r\n";
+
+		send(client, buf, strlen(buf), 0);
 
 		if (strncmp(buf, "exit", 4) == 0)
 			break;
-		
 	}
-	file.close();
-	closesocket(s);
+
+	closesocket(client);
 	WSACleanup();
+
 	return 0;
 }
 
